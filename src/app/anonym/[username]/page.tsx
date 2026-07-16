@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { CampaignCard } from "@/components/campaigns/campaign-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AnonymLogo } from "@/components/brand/logo";
 import { ExternalLink, Globe, HeartHandshake, Shield } from "lucide-react";
 import type {
   Campaign,
@@ -77,18 +76,7 @@ export default function PublicProfilePage() {
   }, [raw]);
 
   return (
-    <div className="min-h-screen bg-base">
-      <header className="border-b border-line">
-        <Container className="flex h-14 items-center justify-between">
-          <Link href="/" className="flex items-center">
-            <AnonymLogo size={28} />
-          </Link>
-          <Button asChild size="sm">
-            <Link href="/app">Launch app</Link>
-          </Button>
-        </Container>
-      </header>
-
+    <div className="min-h-0 flex-1">
       {loading ? (
         <Container className="py-16">
           <Skeleton className="h-36 w-full" />
@@ -103,14 +91,14 @@ export default function PublicProfilePage() {
             }
             action={
               <Button asChild variant="secondary">
-                <Link href="/">Back home</Link>
+                <Link href="/app">Back to app</Link>
               </Button>
             }
           />
         </Container>
       ) : (
         <>
-          <div className="relative h-36 overflow-hidden bg-gradient-to-br from-subtle via-muted-bg to-chip-blue-bg/40 md:h-44">
+          <div className="relative h-32 overflow-hidden bg-gradient-to-br from-subtle via-muted-bg to-chip-blue-bg/40 sm:h-40 md:h-44">
             {user.cover_image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -120,31 +108,31 @@ export default function PublicProfilePage() {
               />
             ) : null}
           </div>
-          <Container className="-mt-12 pb-20">
-            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <div className="flex items-end gap-4">
+          <Container className="-mt-10 pb-20 sm:-mt-14 md:-mt-16">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <div className="flex items-end gap-3 sm:gap-4">
                 {user.avatar_url || startup?.logo ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={startup?.logo || user.avatar_url || ""}
                     alt=""
-                    className="size-24 rounded-2xl border-4 border-base object-cover shadow-[var(--shadow-card)]"
+                    className="size-20 rounded-2xl border-4 border-base object-cover shadow-[var(--shadow-card)] sm:size-24"
                   />
                 ) : (
-                  <div className="flex size-24 items-center justify-center rounded-2xl border-4 border-base bg-inverse text-3xl font-bold text-on-inverse shadow-[var(--shadow-card)]">
+                  <div className="flex size-20 items-center justify-center rounded-2xl border-4 border-base bg-inverse text-2xl font-bold text-on-inverse shadow-[var(--shadow-card)] sm:size-24 sm:text-3xl">
                     {(user.display_name ?? user.username)
                       .slice(0, 1)
                       .toUpperCase()}
                   </div>
                 )}
-                <div className="pb-1">
+                <div className="min-w-0 pb-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-2xl font-bold tracking-tight">
+                    <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl">
                       {startup?.startup_name ??
                         user.display_name ??
                         user.username}
                     </h1>
-                    <Badge variant="outline" className="gap-1">
+                    <Badge variant="outline" className="hidden gap-1 sm:inline-flex">
                       <Shield className="size-3" />
                       Protected by Anonym
                     </Badge>
@@ -152,7 +140,7 @@ export default function PublicProfilePage() {
                       <Badge variant="purple">Startup</Badge>
                     ) : null}
                   </div>
-                  <p className="text-muted">@{user.username}</p>
+                  <p className="text-sm text-muted">@{user.username}</p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
