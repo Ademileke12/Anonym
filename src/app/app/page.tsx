@@ -682,7 +682,7 @@ export default function DashboardPage() {
             }
           />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             {campaigns.map((c, i) => {
               const pct =
                 Number(c.goal_amount) > 0
@@ -703,7 +703,7 @@ export default function DashboardPage() {
                     padded={false}
                     className="overflow-hidden transition-shadow hover:shadow-[var(--shadow-elevated)]"
                   >
-                    <div className="relative h-24 bg-subtle sm:h-28">
+                    <div className="relative h-20 bg-subtle sm:h-28">
                       {c.banner_image || c.featured_image ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -715,10 +715,10 @@ export default function DashboardPage() {
                         <div className="absolute inset-0 bg-gradient-to-br from-subtle via-muted-bg to-card" />
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                      <div className="absolute right-3 top-3 flex items-center gap-2">
+                      <div className="absolute right-2 top-2 flex items-center gap-1.5 sm:right-3 sm:top-3 sm:gap-2">
                         <Badge
                           variant="outline"
-                          className="bg-card/90 backdrop-blur-sm"
+                          className="bg-card/90 text-[10px] backdrop-blur-sm sm:text-xs"
                         >
                           {c.status === "active"
                             ? "Live"
@@ -731,15 +731,15 @@ export default function DashboardPage() {
                         <ShareCampaign campaign={c} variant="icon" />
                       </div>
                     </div>
-                    <div className="space-y-3 p-4 sm:p-5">
+                    <div className="space-y-2.5 p-3 sm:space-y-3 sm:p-5">
                       <div>
                         <Link
                           href={`/app/campaigns/${c.id}`}
-                          className="font-semibold tracking-tight hover:underline"
+                          className="text-sm font-semibold tracking-tight hover:underline sm:text-base"
                         >
                           {c.title}
                         </Link>
-                        <p className="mt-0.5 text-xs text-muted">
+                        <p className="mt-0.5 text-[11px] text-muted sm:text-xs">
                           {c.visibility === "private"
                             ? "Private link"
                             : "Public"}{" "}
@@ -747,7 +747,7 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <div>
-                        <div className="mb-1.5 flex justify-between text-xs text-muted">
+                        <div className="mb-1.5 flex justify-between text-[11px] text-muted sm:text-xs">
                           <span className="tabular-nums">
                             {formatMon(c.amount_raised)} /{" "}
                             {formatMon(c.goal_amount)} MON
@@ -758,7 +758,7 @@ export default function DashboardPage() {
                         </div>
                         <Progress value={pct} />
                       </div>
-                      <ShareCampaign campaign={c} variant="bar" />
+                      <ShareCampaign campaign={c} variant="bar" className="hidden sm:flex" />
                       <Button
                         asChild
                         variant="secondary"
