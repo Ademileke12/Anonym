@@ -36,7 +36,7 @@ export function MobileBottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       aria-label="Primary"
     >
-      <ul className="mx-auto flex h-14 max-w-lg items-stretch justify-between px-1">
+      <ul className="mx-auto flex h-16 max-w-lg items-stretch justify-between px-1">
         {tabs.map((tab) => {
           const active = tab.exact
             ? pathname === tab.href
@@ -51,17 +51,17 @@ export function MobileBottomNav() {
               <Link
                 href={tab.href}
                 className={cn(
-                  "flex w-full flex-col items-center justify-center gap-0.5 px-1 text-[10px] font-medium transition-colors",
+                  "flex w-full flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium transition-colors",
                   active ? "text-ink" : "text-faint hover:text-muted",
                 )}
               >
                 <span
                   className={cn(
-                    "flex size-8 items-center justify-center rounded-xl transition-colors",
+                    "flex size-10 items-center justify-center rounded-xl transition-colors",
                     active && "bg-subtle text-ink",
                   )}
                 >
-                  <tab.icon className="size-[18px]" strokeWidth={active ? 2.25 : 1.75} />
+                  <tab.icon className="size-5" strokeWidth={active ? 2.25 : 1.75} />
                 </span>
                 <span className="truncate">{tab.label}</span>
               </Link>

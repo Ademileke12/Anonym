@@ -14,7 +14,7 @@ export default function AnonymLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         <AppTopbar />
         <NetworkBanner />
-        <main className="min-h-0 flex-1 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+        <main className="min-h-0 flex-1 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-0">
           {children}
         </main>
       </div>
