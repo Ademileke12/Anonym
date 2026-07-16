@@ -1,0 +1,266 @@
+@import "tailwindcss";
+
+/* Class-based dark mode (html.dark / data-theme) - Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
+/*
+  Anonym design system - Attio-inspired.
+  Light: white canvas, black CTAs.
+  Dark: near-black canvas, soft elevated surfaces, inverted primary CTAs.
+*/
+
+:root,
+html[data-theme="light"] {
+  color-scheme: light;
+
+  /* Surfaces */
+  --bg-base: #ffffff;
+  --bg-subtle: #fafafa;
+  --bg-muted: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-inverse: #0a0a0a;
+
+  /* Text */
+  --text-primary: #0a0a0a;
+  --text-secondary: #737373;
+  --text-tertiary: #a3a3a3;
+  --text-on-inverse: #ffffff;
+
+  /* Lines */
+  --border-subtle: #ebebeb;
+  --border-default: #e5e5e5;
+  --border-strong: #d4d4d4;
+
+  /* Brand / CTA */
+  --primary: #0a0a0a;
+  --primary-hover: #262626;
+  --primary-fg: #ffffff;
+
+  /* Soft status chips */
+  --chip-green-bg: #ecfdf5;
+  --chip-green-fg: #047857;
+  --chip-blue-bg: #eff6ff;
+  --chip-blue-fg: #1d4ed8;
+  --chip-yellow-bg: #fefce8;
+  --chip-yellow-fg: #a16207;
+  --chip-orange-bg: #fff7ed;
+  --chip-orange-fg: #c2410c;
+  --chip-red-bg: #fef2f2;
+  --chip-red-fg: #b91c1c;
+  --chip-purple-bg: #f5f3ff;
+  --chip-purple-fg: #6d28d9;
+  --chip-gray-bg: #f5f5f5;
+  --chip-gray-fg: #525252;
+
+  /* Focus / selection */
+  --ring: rgba(10, 10, 10, 0.12);
+  --selection: #dbeafe;
+  --overlay: rgba(0, 0, 0, 0.2);
+  --hover-fill: rgba(0, 0, 0, 0.04);
+
+  /* Grid / mesh */
+  --grid-line: rgba(0, 0, 0, 0.035);
+  --mesh-a: rgba(99, 102, 241, 0.08);
+  --mesh-b: rgba(16, 185, 129, 0.05);
+
+  /* Radii */
+  --radius-card: 16px;
+  --radius-panel: 12px;
+  --radius-input: 10px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 4px 6px rgba(0, 0, 0, 0.03), 0 16px 40px rgba(0, 0, 0, 0.08);
+  --shadow-float: 0 24px 64px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.04);
+}
+
+/* Dark - same component language, inverted surfaces */
+html.dark,
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-base: #0c0c0e;
+  --bg-subtle: #121214;
+  --bg-muted: #1a1a1d;
+  --bg-card: #161618;
+  --bg-elevated: #1c1c1f;
+  --bg-inverse: #f5f5f5;
+
+  --text-primary: #f5f5f5;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --text-on-inverse: #0a0a0a;
+
+  --border-subtle: #27272a;
+  --border-default: #2e2e32;
+  --border-strong: #3f3f46;
+
+  /* Primary CTA becomes light on dark (Attio-style invert) */
+  --primary: #f5f5f5;
+  --primary-hover: #e4e4e7;
+  --primary-fg: #0a0a0a;
+
+  --chip-green-bg: rgba(6, 78, 59, 0.35);
+  --chip-green-fg: #6ee7b7;
+  --chip-blue-bg: rgba(30, 58, 138, 0.35);
+  --chip-blue-fg: #93c5fd;
+  --chip-yellow-bg: rgba(113, 63, 18, 0.4);
+  --chip-yellow-fg: #fcd34d;
+  --chip-orange-bg: rgba(124, 45, 18, 0.4);
+  --chip-orange-fg: #fdba74;
+  --chip-red-bg: rgba(127, 29, 29, 0.4);
+  --chip-red-fg: #fca5a5;
+  --chip-purple-bg: rgba(76, 29, 149, 0.35);
+  --chip-purple-fg: #c4b5fd;
+  --chip-gray-bg: #27272a;
+  --chip-gray-fg: #a1a1aa;
+
+  --ring: rgba(255, 255, 255, 0.14);
+  --selection: rgba(59, 130, 246, 0.35);
+  --overlay: rgba(0, 0, 0, 0.55);
+  --hover-fill: rgba(255, 255, 255, 0.06);
+
+  --grid-line: rgba(255, 255, 255, 0.045);
+  --mesh-a: rgba(99, 102, 241, 0.12);
+  --mesh-b: rgba(16, 185, 129, 0.08);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-elevated: 0 4px 8px rgba(0, 0, 0, 0.4), 0 16px 40px rgba(0, 0, 0, 0.45);
+  --shadow-float: 0 24px 64px rgba(0, 0, 0, 0.55), 0 8px 16px rgba(0, 0, 0, 0.35);
+}
+
+@theme inline {
+  --color-base: var(--bg-base);
+  --color-subtle: var(--bg-subtle);
+  --color-muted-bg: var(--bg-muted);
+  --color-card: var(--bg-card);
+  --color-inverse: var(--bg-inverse);
+
+  --color-ink: var(--text-primary);
+  --color-muted: var(--text-secondary);
+  --color-faint: var(--text-tertiary);
+  --color-on-inverse: var(--text-on-inverse);
+
+  --color-line: var(--border-subtle);
+  --color-line-strong: var(--border-default);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+
+  --color-chip-green-bg: var(--chip-green-bg);
+  --color-chip-green-fg: var(--chip-green-fg);
+  --color-chip-blue-bg: var(--chip-blue-bg);
+  --color-chip-blue-fg: var(--chip-blue-fg);
+  --color-chip-yellow-bg: var(--chip-yellow-bg);
+  --color-chip-yellow-fg: var(--chip-yellow-fg);
+  --color-chip-orange-bg: var(--chip-orange-bg);
+  --color-chip-orange-fg: var(--chip-orange-fg);
+  --color-chip-red-bg: var(--chip-red-bg);
+  --color-chip-red-fg: var(--chip-red-fg);
+  --color-chip-purple-bg: var(--chip-purple-bg);
+  --color-chip-purple-fg: var(--chip-purple-fg);
+  --color-chip-gray-bg: var(--chip-gray-bg);
+  --color-chip-gray-fg: var(--chip-gray-fg);
+
+  --radius-card: var(--radius-card);
+  --radius-panel: var(--radius-panel);
+  --radius-input: var(--radius-input);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-xs: var(--shadow-xs);
+  --shadow-card: var(--shadow-card);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-float: var(--shadow-float);
+
+  --font-sans: var(--font-inter);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Prevent iOS rubber-band from revealing blank edges */
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    overflow-x: hidden;
+    /* Better mobile tap targets */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Avoid 100vw scrollbar overflow on mobile */
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  h1 {
+    letter-spacing: -0.035em;
+    font-weight: 700;
+  }
+
+  ::selection {
+    background: var(--selection);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .mesh-soft {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, var(--mesh-a), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 0%, var(--mesh-b), transparent);
+  }
+
+  .hover-fill {
+    background-color: var(--hover-fill);
+  }
+
+  .safe-px {
+    padding-left: max(1.25rem, env(safe-area-inset-left));
+    padding-right: max(1.25rem, env(safe-area-inset-right));
+  }
+
+  .safe-pb {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* Horizontal scroll region without page-level overflow */
+  .scroll-x {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+}
