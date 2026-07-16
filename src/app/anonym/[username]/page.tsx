@@ -98,7 +98,8 @@ export default function PublicProfilePage() {
         </Container>
       ) : (
         <>
-          <div className="relative h-32 overflow-hidden bg-gradient-to-br from-subtle via-muted-bg to-chip-blue-bg/40 sm:h-40 md:h-44">
+          {/* Banner */}
+          <div className="relative h-40 overflow-hidden bg-gradient-to-br from-subtle via-muted-bg to-chip-blue-bg/40 sm:h-48 md:h-52">
             {user.cover_image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -108,42 +109,47 @@ export default function PublicProfilePage() {
               />
             ) : null}
           </div>
-          <Container className="-mt-10 pb-20 sm:-mt-14 md:-mt-16">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-              <div className="flex items-end gap-3 sm:gap-4">
-                {user.avatar_url || startup?.logo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={startup?.logo || user.avatar_url || ""}
-                    alt=""
-                    className="size-20 rounded-2xl border-4 border-base object-cover shadow-[var(--shadow-card)] sm:size-24"
-                  />
-                ) : (
-                  <div className="flex size-20 items-center justify-center rounded-2xl border-4 border-base bg-inverse text-2xl font-bold text-on-inverse shadow-[var(--shadow-card)] sm:size-24 sm:text-3xl">
-                    {(user.display_name ?? user.username)
-                      .slice(0, 1)
-                      .toUpperCase()}
-                  </div>
-                )}
-                <div className="min-w-0 pb-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="truncate text-xl font-bold tracking-tight sm:text-2xl">
-                      {startup?.startup_name ??
-                        user.display_name ??
-                        user.username}
-                    </h1>
-                    <Badge variant="outline" className="hidden gap-1 sm:inline-flex">
-                      <Shield className="size-3" />
-                      Protected by Anonym
-                    </Badge>
-                    {user.account_type === "startup" ? (
-                      <Badge variant="purple">Startup</Badge>
-                    ) : null}
-                  </div>
-                  <p className="text-sm text-muted">@{user.username}</p>
+
+          {/* Avatar + profile info */}
+          <Container className="relative px-4 sm:px-6">
+            {/* Avatar overlapping banner */}
+            <div className="-mt-16 sm:-mt-20">
+              {user.avatar_url || startup?.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={startup?.logo || user.avatar_url || ""}
+                  alt=""
+                  className="size-24 rounded-full border-4 border-base object-cover shadow-[var(--shadow-card)] sm:size-32"
+                />
+              ) : (
+                <div className="flex size-24 items-center justify-center rounded-full border-4 border-base bg-inverse text-3xl font-bold text-on-inverse shadow-[var(--shadow-card)] sm:size-32 sm:text-4xl">
+                  {(user.display_name ?? user.username)
+                    .slice(0, 1)
+                    .toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            {/* Name + actions row */}
+            <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+                  {startup?.startup_name ??
+                    user.display_name ??
+                    user.username}
+                </h1>
+                <p className="text-sm text-muted">@{user.username}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="gap-1">
+                    <Shield className="size-3" />
+                    Protected by Anonym
+                  </Badge>
+                  {user.account_type === "startup" ? (
+                    <Badge variant="purple">Startup</Badge>
+                  ) : null}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex shrink-0 flex-wrap gap-2">
                 {user.website ? (
                   <Button asChild variant="secondary" size="sm">
                     <a href={user.website} target="_blank" rel="noreferrer">
