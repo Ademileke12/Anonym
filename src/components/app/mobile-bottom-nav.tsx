@@ -49,9 +49,10 @@ export function MobileBottomNav() {
           return (
             <li key={tab.href} className="flex min-w-0 flex-1">
               <Link
+                aria-label={tab.label}
                 href={tab.href}
                 className={cn(
-                  "flex w-full flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium transition-colors",
+                  "flex w-full items-center justify-center px-1 transition-colors",
                   active ? "text-ink" : "text-faint hover:text-muted",
                 )}
               >
@@ -63,7 +64,6 @@ export function MobileBottomNav() {
                 >
                   <tab.icon className="size-5" strokeWidth={active ? 2.25 : 1.75} />
                 </span>
-                <span className="truncate">{tab.label}</span>
               </Link>
             </li>
           );
