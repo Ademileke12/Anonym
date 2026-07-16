@@ -579,7 +579,7 @@ export default function CampaignDetailPage() {
                 <h2 className="font-semibold">Campaign vault</h2>
               </div>
               <p className="text-sm text-muted">
-                Contributions land in a protocol vault — not your public wallet.
+                Contributions land in a protocol vault, not your public wallet.
                 Withdraw when you need funds.
               </p>
               <div className="mt-3 rounded-xl bg-subtle px-3 py-2.5">

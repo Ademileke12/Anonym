@@ -113,7 +113,7 @@ export default function NewCampaignPage() {
       </Badge>
       <h1 className="text-2xl font-bold tracking-tight">Create campaign</h1>
       <p className="mt-1 text-muted">
-        Contributions deposit to a campaign vault — not your public wallet.
+        Contributions deposit to a campaign vault, not your public wallet.
       </p>
 
       <Card className="mt-8">

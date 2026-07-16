@@ -561,7 +561,7 @@ export default function DashboardPage() {
                 <EmptyState
                   icon={Shield}
                   title="No protected activity yet"
-                  description="Send or receive via TransferVault — activity appears here without a public counterparty graph."
+                  description="Send or receive via TransferVault. Activity appears here without a public counterparty graph."
                   className="border-0 py-12"
                   action={
                     <Button asChild size="sm">

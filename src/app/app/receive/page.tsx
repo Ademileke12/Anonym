@@ -60,7 +60,7 @@ export default function ReceivePage() {
         </Badge>
         <h1 className="text-2xl font-bold tracking-tight">Receive</h1>
         <p className="mt-1 text-muted">
-          Share your profile — not a raw wallet. Incoming funds are protected
+          Share your profile, not a raw wallet. Incoming funds are protected
           deposits you claim from the dashboard.
         </p>
       </div>

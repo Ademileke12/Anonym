@@ -317,7 +317,7 @@ export default function TransferPage() {
             <p className="font-medium text-ink">How it works</p>
             <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs">
               <li>We verify @username exists on Anonym</li>
-              <li>You sign — real MON deposits into TransferVault</li>
+              <li>You sign, real MON deposits into TransferVault</li>
               <li>They claim on the dashboard into their wallet</li>
             </ol>
           </div>
