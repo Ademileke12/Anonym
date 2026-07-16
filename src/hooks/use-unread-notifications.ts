@@ -35,6 +35,7 @@ export function useUnreadNotifications() {
 
   useEffect(() => {
     if (!user || !configured) return;
+    if (typeof WebSocket === "undefined") return;
     const supabase = tryCreateClient();
     if (!supabase) return;
 

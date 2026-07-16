@@ -27,7 +27,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.supabase.co https://*.walletconnect.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "connect-src 'self' https://*.supabase.co wss://*.walletconnect.com https://*.walletconnect.com https://*.walletconnect.org https://testnet-rpc.monad.xyz https://rpc.walletconnect.com https://relay.walletconnect.com blob:",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co wss://*.walletconnect.com https://*.walletconnect.com https://*.walletconnect.org https://testnet-rpc.monad.xyz https://rpc.walletconnect.com https://relay.walletconnect.com blob:",
       "frame-src 'self' https://verify.walletconnect.com https://*.walletconnect.com",
       "worker-src 'self' blob:",
       "object-src 'none'",
