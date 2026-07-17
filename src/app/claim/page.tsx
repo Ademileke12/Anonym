@@ -17,7 +17,6 @@ import { Badge } from "@/components/ui/badge";
 import { AnonymLogo } from "@/components/brand/logo";
 import { formatMon } from "@/lib/format";
 import { Loader2, Shield, Wallet } from "lucide-react";
-import type { Hex } from "viem";
 
 type Preview = {
   deposit: {
@@ -52,7 +51,6 @@ function ClaimInner() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
-  const [relaying, setRelaying] = useState(false);
   const [done, setDone] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -134,39 +132,6 @@ function ClaimInner() {
     }
   }
 
-  /** Optional gasless path — needs CLAIM_RELAYER_PRIVATE_KEY matching recipient. */
-  async function claimGasless() {
-    if (!preview || !address) return;
-    const recipient = preview.deposit.recipient_wallet.toLowerCase();
-    if (address.toLowerCase() !== recipient) {
-      setError(
-        `Connect the recipient wallet (${recipient.slice(0, 6)}…${recipient.slice(-4)}) first.`,
-      );
-      return;
-    }
-    setRelaying(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/claim/relay", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, salt, claimer: address }),
-      });
-      const json = (await res.json()) as { error?: string; txHash?: string };
-      if (!res.ok) throw new Error(json.error || "Gasless claim unavailable");
-      setDone(json.txHash ?? "relayed");
-      await load();
-    } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : "Gasless claim unavailable — use wallet claim",
-      );
-    } finally {
-      setRelaying(false);
-    }
-  }
-
   return (
     <div className="min-h-screen bg-base">
       <header className="border-b border-line">
@@ -184,7 +149,7 @@ function ClaimInner() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Claim protected MON</h1>
           <p className="mt-1 text-sm text-muted">
-            Vault deposit — not a direct wallet transfer. Connect the recipient
+            Vault deposit, not a direct wallet transfer. Connect the recipient
             wallet to release funds.
           </p>
         </div>
@@ -261,44 +226,26 @@ function ClaimInner() {
                 {connecting ? "Connecting…" : "Connect wallet to claim"}
               </Button>
             ) : (
-              <div className="space-y-2">
-                <Button
-                  className="w-full"
-                  disabled={
-                    claiming ||
-                    relaying ||
-                    !preview.claimable ||
-                    preview.deposit.status === "claimed"
-                  }
-                  onClick={() => void claim()}
-                >
-                  {claiming ? (
-                    <Loader2 className="animate-spin" />
-                  ) : (
-                    <Shield className="size-4" />
-                  )}
-                  {preview.deposit.status === "claimed"
-                    ? "Already claimed"
-                    : claiming
-                      ? "Confirm in wallet…"
-                      : "Claim to this wallet"}
-                </Button>
-                {preview.claimable &&
-                preview.deposit.status !== "claimed" &&
-                preview.needsVault ? (
-                  <Button
-                    className="w-full"
-                    variant="secondary"
-                    disabled={claiming || relaying}
-                    onClick={() => void claimGasless()}
-                  >
-                    {relaying ? (
-                      <Loader2 className="animate-spin" />
-                    ) : null}
-                    {relaying ? "Relaying…" : "Try gasless claim"}
-                  </Button>
-                ) : null}
-              </div>
+              <Button
+                className="w-full"
+                disabled={
+                  claiming ||
+                  !preview.claimable ||
+                  preview.deposit.status === "claimed"
+                }
+                onClick={() => void claim()}
+              >
+                {claiming ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Shield className="size-4" />
+                )}
+                {preview.deposit.status === "claimed"
+                  ? "Already claimed"
+                  : claiming
+                    ? "Confirm in wallet…"
+                    : "Claim to this wallet"}
+              </Button>
             )}
 
             <p className="text-center text-[11px] text-faint">
