@@ -297,6 +297,13 @@ export type Database = {
           status: ProtectedStatus;
           created_at: Timestamp;
           claimed_at: Timestamp | null;
+          unlock_at: Timestamp | null;
+          condition_type: string | null;
+          condition_payload: Record<string, unknown>;
+          metadata: Record<string, unknown>;
+          split_group_id: string | null;
+          parent_request_id: string | null;
+          claim_token: string | null;
         },
         {
           id?: string;
@@ -320,6 +327,87 @@ export type Database = {
           status?: ProtectedStatus;
           created_at?: Timestamp;
           claimed_at?: Timestamp | null;
+          unlock_at?: Timestamp | null;
+          condition_type?: string | null;
+          condition_payload?: Record<string, unknown>;
+          metadata?: Record<string, unknown>;
+          split_group_id?: string | null;
+          parent_request_id?: string | null;
+          claim_token?: string | null;
+        }
+      >;
+      payment_requests: TableDef<
+        {
+          id: string;
+          requester_user_id: string | null;
+          requester_wallet: string;
+          requester_username: string | null;
+          payer_user_id: string | null;
+          payer_wallet: string | null;
+          payer_username: string | null;
+          amount: number;
+          token: string;
+          message: string | null;
+          metadata: Record<string, unknown>;
+          status: string;
+          deposit_id: string | null;
+          expires_at: Timestamp | null;
+          created_at: Timestamp;
+          paid_at: Timestamp | null;
+        },
+        {
+          id?: string;
+          requester_user_id?: string | null;
+          requester_wallet: string;
+          requester_username?: string | null;
+          payer_user_id?: string | null;
+          payer_wallet?: string | null;
+          payer_username?: string | null;
+          amount: number;
+          token?: string;
+          message?: string | null;
+          metadata?: Record<string, unknown>;
+          status?: string;
+          deposit_id?: string | null;
+          expires_at?: Timestamp | null;
+          created_at?: Timestamp;
+          paid_at?: Timestamp | null;
+        }
+      >;
+      recurring_sends: TableDef<
+        {
+          id: string;
+          sender_user_id: string | null;
+          sender_wallet: string;
+          recipient_wallet: string;
+          recipient_user_id: string | null;
+          recipient_username: string | null;
+          amount: number;
+          token: string;
+          interval_days: number;
+          next_run_at: Timestamp;
+          active: boolean;
+          message: string | null;
+          metadata: Record<string, unknown>;
+          last_deposit_id: string | null;
+          created_at: Timestamp;
+        },
+        {
+          id?: string;
+          sender_user_id?: string | null;
+          sender_wallet: string;
+          recipient_wallet: string;
+          recipient_user_id?: string | null;
+          recipient_username?: string | null;
+          amount: number;
+          token?: string;
+          interval_days?: number;
+          next_run_at?: Timestamp;
+          active?: boolean;
+          message?: string | null;
+          metadata?: Record<string, unknown>;
+          last_deposit_id?: string | null;
+          created_at?: Timestamp;
         }
       >;
       campaign_vaults: TableDef<

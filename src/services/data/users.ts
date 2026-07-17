@@ -183,25 +183,32 @@ export async function getStartupByUserId(
 }
 
 /**
- * Resolve a registered Anonym user for protected transfers.
- * Requires an existing profile (username). Raw 0x is only accepted if that
- * wallet already has an Anonym account - never send to unknown addresses.
+ * Resolve recipient for protected transfers.
+ * - @username → must exist on Anonym
+ * - 0x wallet → allowed for non-users (claim-link path); user null if not registered
  */
 export async function resolveRecipient(
   input: string,
-): Promise<{ wallet: string; user: User } | null> {
+  opts?: { allowRawWallet?: boolean },
+): Promise<{ wallet: string; user: User | null; kind: "user" | "wallet" } | null> {
+  const allowRaw = opts?.allowRawWallet !== false;
   const raw = input.trim();
   if (!raw) return null;
 
   if (/^0x[a-fA-F0-9]{40}$/i.test(raw)) {
-    const user = await getUserByWallet(raw.toLowerCase());
-    if (!user) return null;
-    return {
-      wallet: (
-        user.monad_receiving_address || user.wallet_address
-      ).toLowerCase(),
-      user,
-    };
+    const wallet = raw.toLowerCase() as string;
+    const user = await getUserByWallet(wallet);
+    if (user) {
+      return {
+        wallet: (
+          user.monad_receiving_address || user.wallet_address
+        ).toLowerCase(),
+        user,
+        kind: "user",
+      };
+    }
+    if (!allowRaw) return null;
+    return { wallet, user: null, kind: "wallet" };
   }
 
   const username = raw.replace(/^@/, "").toLowerCase();
@@ -215,23 +222,38 @@ export async function resolveRecipient(
       user.monad_receiving_address || user.wallet_address
     ).toLowerCase(),
     user,
+    kind: "user",
   };
 }
 
-/** Live username check for transfer UI. */
+/** Live username / wallet check for transfer UI. */
 export async function lookupUsernameForTransfer(
   input: string,
-): Promise<
-  | { status: "empty" | "invalid" | "not_found" | "found"; user?: User }
-> {
-  const raw = input.trim().replace(/^@/, "");
+): Promise<{
+  status:
+    | "empty"
+    | "invalid"
+    | "not_found"
+    | "found"
+    | "wallet_external";
+  user?: User;
+  wallet?: string;
+}> {
+  const raw = input.trim();
   if (!raw) return { status: "empty" };
+
   if (/^0x[a-fA-F0-9]{40}$/i.test(raw)) {
-    const user = await getUserByWallet(raw.toLowerCase());
-    return user ? { status: "found", user } : { status: "not_found" };
+    const wallet = raw.toLowerCase();
+    const user = await getUserByWallet(wallet);
+    if (user) return { status: "found", user, wallet };
+    return { status: "wallet_external", wallet };
   }
-  if (!/^[a-z0-9_]{1,30}$/i.test(raw)) return { status: "invalid" };
-  if (raw.length < 3) return { status: "invalid" };
-  const user = await getUserByUsername(raw.toLowerCase());
-  return user ? { status: "found", user } : { status: "not_found" };
+
+  const name = raw.replace(/^@/, "");
+  if (!/^[a-z0-9_]{1,30}$/i.test(name)) return { status: "invalid" };
+  if (name.length < 3) return { status: "invalid" };
+  const user = await getUserByUsername(name.toLowerCase());
+  return user
+    ? { status: "found", user }
+    : { status: "not_found" };
 }

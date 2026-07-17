@@ -70,11 +70,19 @@ export async function protocolTransfer(params: {
   amountMon: string;
   message?: string | null;
   anonymous?: boolean;
+  /** Escrow: claim only after this ISO timestamp */
+  unlockAt?: string | null;
+  conditionType?: string | null;
+  conditionPayload?: Record<string, unknown>;
+  metadata?: Record<string, string | undefined>;
+  splitGroupId?: string | null;
+  parentRequestId?: string | null;
 }): Promise<{
   deposit: ProtectedDeposit;
   txHash: Hex;
   mode: SettlementMode;
   zkProof?: CommitmentProof;
+  claimPath?: string;
 }> {
   const {
     clients,
@@ -170,9 +178,21 @@ export async function protocolTransfer(params: {
       message: message ?? null,
       status: "claimable",
       nullifier: zkProof?.nullifier ?? null,
+      unlock_at: params.unlockAt ?? null,
+      condition_type: params.conditionType ?? "none",
+      condition_payload: params.conditionPayload ?? {},
+      metadata: params.metadata ?? {},
+      split_group_id: params.splitGroupId ?? null,
+      parent_request_id: params.parentRequestId ?? null,
     });
 
-    return { deposit, txHash: hash, mode: "vault", zkProof };
+    return {
+      deposit,
+      txHash: hash,
+      mode: "vault",
+      zkProof,
+      claimPath: `/claim?id=${deposit.id}&salt=${salt}`,
+    };
   }
 
   // ── Treasury hold: real debit, claim needs vault later ───────────────────
@@ -203,9 +223,21 @@ export async function protocolTransfer(params: {
     message: message ?? null,
     status: "claimable",
     nullifier: zkProof?.nullifier ?? null,
+    unlock_at: params.unlockAt ?? null,
+    condition_type: params.conditionType ?? "none",
+    condition_payload: params.conditionPayload ?? {},
+    metadata: params.metadata ?? {},
+    split_group_id: params.splitGroupId ?? null,
+    parent_request_id: params.parentRequestId ?? null,
   });
 
-  return { deposit, txHash: hash, mode: "treasury", zkProof };
+  return {
+    deposit,
+    txHash: hash,
+    mode: "treasury",
+    zkProof,
+    claimPath: `/claim?id=${deposit.id}&salt=${salt}`,
+  };
 }
 
 /**
@@ -218,6 +250,11 @@ export async function protocolClaimTransfer(params: {
 }): Promise<Hex> {
   const { clients, deposit } = params;
   const salt = deposit.salt as Hex;
+
+  const gate = (await import("./ledger")).isDepositClaimableNow(deposit);
+  if (!gate.ok) {
+    throw new Error(gate.reason ?? "Not claimable yet");
+  }
 
   const vault =
     deposit.vault_address?.startsWith("0x") && deposit.vault_address.length === 42
