@@ -11,13 +11,21 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Anonym - Private Payments. Private Fundraising. Built on Monad.",
+  title: "Anonym. Private Payments. Private Fundraising. Built on Monad.",
   description:
     "Anonym is a privacy-first payment and fundraising platform built on Monad. Vault protocol, ZK-ready commitments, private balances.",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
-    apple: [{ url: "/logo.svg" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16.png", type: "image/png", sizes: "16x16" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/favicon.ico"],
   },
   appleWebApp: {
     capable: true,
