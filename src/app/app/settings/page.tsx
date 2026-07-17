@@ -16,11 +16,15 @@ import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { useToast } from "@/components/ui/toast";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { usePrivateBalances } from "@/hooks/use-private-balance";
+import { ZK_ENGINE } from "@/services/privacy";
 import { Plus, Trash2 } from "lucide-react";
 
 export default function SettingsPage() {
   const { user, setUser, signOut } = useAuth();
   const { toast } = useToast();
+  const { enabled: privateBal, setEnabled: setPrivateBal } =
+    usePrivateBalances();
   const [displayName, setDisplayName] = useState(user?.display_name ?? "");
   const [bio, setBio] = useState(user?.bio ?? "");
   const [website, setWebsite] = useState(user?.website ?? "");
@@ -254,6 +258,32 @@ export default function SettingsPage() {
           Light, dark, or match your system preference.
         </p>
         <ThemeToggle />
+      </Card>
+
+      <Card className="space-y-3">
+        <h2 className="font-semibold">Privacy · Phase Next</h2>
+        <p className="text-sm text-muted">
+          Private balances hide wallet, claimable, raised, sent, and received
+          figures until you reveal them. Engine {ZK_ENGINE.version}.
+        </p>
+        <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-line bg-subtle px-4 py-3">
+          <div>
+            <p className="text-sm font-medium">Private balances</p>
+            <p className="text-xs text-muted">
+              Mask amounts on the dashboard (session preference)
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            className="size-4 accent-ink"
+            checked={privateBal}
+            onChange={(e) => setPrivateBal(e.target.checked)}
+          />
+        </label>
+        <p className="text-xs text-faint">
+          Commitment proofs (anonym-zk-v1) run on every protected transfer.
+          On-chain SNARK verification is not enabled yet.
+        </p>
       </Card>
 
       <Card className="space-y-3">

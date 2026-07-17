@@ -6,37 +6,41 @@ import { Badge } from "@/components/ui/badge";
 
 const phases = [
   {
-    phase: "Now",
+    phase: "Shipped",
     title: "Vault protocol",
     items: [
-      "TransferVault + claim",
-      "CampaignVault donate/withdraw",
-      "No direct P2P in product",
-      "Protected activity dashboard",
+      { text: "TransferVault + claim", done: true },
+      { text: "CampaignVault donate/withdraw", done: true },
+      { text: "No direct P2P in product", done: true },
+      { text: "Protected activity dashboard", done: true },
     ],
-    tone: "green" as const,
+    tone: "outline" as const,
+    active: false,
   },
   {
-    phase: "Next",
+    phase: "Now",
     title: "On-chain + ZK",
     items: [
-      "Deployed vaults on testnet",
-      "ZK proofs on commitments",
-      "Private balances",
-      "Mobile clients",
+      { text: "Deployed vaults on Monad Testnet", done: true },
+      { text: "ZK proofs on commitments (anonym-zk-v1)", done: true },
+      { text: "Private balances (client reveal)", done: true },
+      { text: "Mobile clients (PWA install)", done: true },
+      { text: "On-chain SNARK verifier", done: false },
     ],
-    tone: "blue" as const,
+    tone: "outline" as const,
+    active: true,
   },
   {
     phase: "Later",
     title: "Network scale",
     items: [
-      "Monad mainnet",
-      "Payroll & grants",
-      "DAO treasury privacy",
-      "Creator memberships",
+      { text: "Monad mainnet", done: false },
+      { text: "Payroll & grants", done: false },
+      { text: "DAO treasury privacy", done: false },
+      { text: "Native iOS / Android", done: false },
     ],
-    tone: "purple" as const,
+    tone: "muted" as const,
+    active: false,
   },
 ];
 
@@ -49,6 +53,10 @@ export function RoadmapSection() {
           <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
             From private by policy to private by cryptography
           </h2>
+          <p className="mt-3 text-sm text-muted">
+            Phase Next is active: testnet vaults, commitment proofs, private
+            balances, and installable mobile clients.
+          </p>
         </div>
         <div className="mt-12 grid gap-4 md:grid-cols-3">
           {phases.map((p, i) => (
@@ -58,14 +66,21 @@ export function RoadmapSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.06 }}
-              className="rounded-[var(--radius-card)] border border-line bg-card p-6 shadow-[var(--shadow-card)]"
+              className={`rounded-[var(--radius-card)] border bg-card p-6 shadow-[var(--shadow-card)] ${
+                p.active ? "border-ink/20" : "border-line"
+              }`}
             >
               <Badge variant={p.tone}>{p.phase}</Badge>
               <h3 className="mt-3 text-lg font-semibold">{p.title}</h3>
               <ul className="mt-4 space-y-2">
                 {p.items.map((item) => (
-                  <li key={item} className="text-sm text-muted">
-                    · {item}
+                  <li key={item.text} className="flex gap-2 text-sm text-muted">
+                    <span className="shrink-0 text-faint">
+                      {item.done ? "✓" : "·"}
+                    </span>
+                    <span className={item.done ? "text-ink" : undefined}>
+                      {item.text}
+                    </span>
                   </li>
                 ))}
               </ul>

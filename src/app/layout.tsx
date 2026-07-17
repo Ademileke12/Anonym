@@ -11,9 +11,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Anonym — Private Payments. Private Fundraising. Built on Monad.",
+  title: "Anonym - Private Payments. Private Fundraising. Built on Monad.",
   description:
-    "Anonym is a privacy-first payment and fundraising platform built on Monad. Send private payments, raise funds, and support startups anonymously.",
+    "Anonym is a privacy-first payment and fundraising platform built on Monad. Vault protocol, ZK-ready commitments, private balances.",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
     apple: [{ url: "/logo.svg" }],
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Anonym",
   },
+  applicationName: "Anonym",
 };
 
 export const viewport: Viewport = {

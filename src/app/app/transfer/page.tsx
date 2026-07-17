@@ -203,10 +203,16 @@ export default function TransferPage() {
 
       toast({
         title: `Sent to @${resolved.user.username}`,
-        description:
+        description: [
           result.mode === "vault"
-            ? `MON deposited to TransferVault. Tx ${result.txHash.slice(0, 12)}… They claim from their dashboard.`
-            : `MON left your wallet. Tx ${result.txHash.slice(0, 12)}…`,
+            ? `MON deposited to TransferVault · ${result.txHash.slice(0, 12)}…`
+            : `MON held · ${result.txHash.slice(0, 12)}…`,
+          result.zkProof
+            ? `ZK proof ${result.zkProof.proveMs}ms · nullifier ready`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
         tone: "success",
       });
       setAmount("");

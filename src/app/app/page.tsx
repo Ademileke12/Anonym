@@ -31,6 +31,7 @@ import {
   ArrowUpRight,
   Wallet,
   Eye,
+  EyeOff,
   Shield,
   ChevronRight,
   Plus,
@@ -52,6 +53,10 @@ import { monadTestnet } from "@/services/blockchain/chains";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 import { IconTile } from "@/components/ui/icon-tile";
+import {
+  formatPrivateValue,
+  usePrivateBalances,
+} from "@/hooks/use-private-balance";
 import type { LucideIcon } from "lucide-react";
 
 export default function DashboardPage() {
@@ -60,6 +65,8 @@ export default function DashboardPage() {
   const { data: walletClient } = useWalletClient();
   const { ensureMonadTestnet } = useMonadNetwork();
   const { toast } = useToast();
+  const { enabled: privateBal, mask, reveal, hide, setEnabled: setPrivateBal } =
+    usePrivateBalances();
   const { data: balance, isLoading: balanceLoading } = useBalance({
     address: wallet as `0x${string}` | undefined,
     chainId: monadTestnet.id,
@@ -251,17 +258,20 @@ export default function DashboardPage() {
       label: "Balance",
       value: balanceLoading
         ? "…"
-        : balance
-          ? formatMon(Number(formatEther(balance.value)), 4)
-          : "-",
-      unit: "MON",
-      hint: "Wallet · Monad Testnet",
+        : formatPrivateValue(
+            balance
+              ? formatMon(Number(formatEther(balance.value)), 4)
+              : "-",
+            mask,
+          ),
+      unit: mask ? undefined : "MON",
+      hint: privateBal ? "Private balance · session only" : "Wallet · Monad Testnet",
       icon: Wallet,
     },
     {
       label: "Claimable",
-      value: formatMon(claimableTotal),
-      unit: "MON",
+      value: formatPrivateValue(formatMon(claimableTotal), mask),
+      unit: mask ? undefined : "MON",
       hint:
         claimable.length > 0
           ? `${claimable.length} protected transfer${claimable.length === 1 ? "" : "s"}`
@@ -270,22 +280,22 @@ export default function DashboardPage() {
     },
     {
       label: "Raised",
-      value: formatMon(raised),
-      unit: "MON",
+      value: formatPrivateValue(formatMon(raised), mask),
+      unit: mask ? undefined : "MON",
       hint: `${campaigns.length} campaign${campaigns.length === 1 ? "" : "s"}`,
       icon: HeartHandshake,
     },
     {
       label: "Sent",
-      value: formatMon(sent),
-      unit: "MON",
+      value: formatPrivateValue(formatMon(sent), mask),
+      unit: mask ? undefined : "MON",
       hint: "Vault deposits out",
       icon: ArrowUpRight,
     },
     {
       label: "Received",
-      value: formatMon(received),
-      unit: "MON",
+      value: formatPrivateValue(formatMon(received), mask),
+      unit: mask ? undefined : "MON",
       hint: "Protected inbound",
       icon: ArrowDownLeft,
     },
@@ -396,6 +406,26 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => (mask ? reveal() : privateBal ? hide() : setPrivateBal(true))}
+              title={
+                privateBal
+                  ? mask
+                    ? "Reveal balances"
+                    : "Hide balances"
+                  : "Enable private balances"
+              }
+            >
+              {mask ? (
+                <Eye className="size-4" />
+              ) : (
+                <EyeOff className="size-4" />
+              )}
+              {mask ? "Reveal" : privateBal ? "Hide" : "Private $"}
+            </Button>
             <Button asChild variant="secondary" size="sm">
               <Link href="/app/transfer">
                 <Send className="size-4" /> Send

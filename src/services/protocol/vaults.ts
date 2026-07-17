@@ -39,6 +39,11 @@ import {
   getCampaignVault,
   type ProtectedDeposit,
 } from "./ledger";
+import {
+  ZK_ENGINE,
+  generateCommitmentProof,
+  type CommitmentProof,
+} from "@/services/privacy";
 
 export type ProtocolClients = {
   walletClient: WalletClient;
@@ -69,6 +74,7 @@ export async function protocolTransfer(params: {
   deposit: ProtectedDeposit;
   txHash: Hex;
   mode: SettlementMode;
+  zkProof?: CommitmentProof;
 }> {
   const {
     clients,
@@ -89,8 +95,21 @@ export async function protocolTransfer(params: {
   }
 
   const salt = randomSalt();
-  const commitment = computeCommitment(recipientWallet as Address, salt);
   const value = parseEther(amountMon);
+
+  // Phase Next: generate commitment proof before on-chain deposit
+  let zkProof: CommitmentProof | undefined;
+  let commitment: Hex = computeCommitment(recipientWallet as Address, salt);
+  if (ZK_ENGINE.commitmentProofs) {
+    zkProof = await generateCommitmentProof({
+      recipient: recipientWallet as Address,
+      salt,
+      amountWei: value,
+      domain: "anonym:transfer-vault",
+    });
+    commitment = zkProof.commitment;
+  }
+
   const settlement = getTransferSettlement();
 
   // ── Full TransferVault path (deposit + later claim) ──────────────────────
@@ -105,6 +124,9 @@ export async function protocolTransfer(params: {
       chain: walletClient.chain,
     });
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    if (receipt.status === "reverted") {
+      throw new Error("Vault deposit reverted on-chain");
+    }
 
     let onChainId: string | null = null;
     for (const log of receipt.logs) {
@@ -147,9 +169,10 @@ export async function protocolTransfer(params: {
       amount,
       message: message ?? null,
       status: "claimable",
+      nullifier: zkProof?.nullifier ?? null,
     });
 
-    return { deposit, txHash: hash, mode: "vault" };
+    return { deposit, txHash: hash, mode: "vault", zkProof };
   }
 
   // ── Treasury hold: real debit, claim needs vault later ───────────────────
@@ -159,7 +182,10 @@ export async function protocolTransfer(params: {
     to: settlement.address,
     value,
   });
-  await publicClient.waitForTransactionReceipt({ hash });
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  if (receipt.status === "reverted") {
+    throw new Error("Treasury deposit reverted on-chain");
+  }
 
   const deposit = await insertProtectedDeposit({
     kind: "transfer",
@@ -176,9 +202,10 @@ export async function protocolTransfer(params: {
     amount,
     message: message ?? null,
     status: "claimable",
+    nullifier: zkProof?.nullifier ?? null,
   });
 
-  return { deposit, txHash: hash, mode: "treasury" };
+  return { deposit, txHash: hash, mode: "treasury", zkProof };
 }
 
 /**

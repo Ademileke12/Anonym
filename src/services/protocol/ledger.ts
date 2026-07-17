@@ -74,6 +74,8 @@ export async function insertProtectedDeposit(input: {
   token?: string;
   message?: string | null;
   status?: ProtectedStatus;
+  /** ZK nullifier (anonym-zk-v1) */
+  nullifier?: string | null;
 }): Promise<ProtectedDeposit> {
   const supabase = createClient();
 
@@ -81,6 +83,7 @@ export async function insertProtectedDeposit(input: {
     .from("commitments")
     .insert({
       commitment_hash: input.commitment_hash,
+      nullifier_placeholder: input.nullifier ?? null,
       vault_address: input.vault_address ?? null,
       amount: input.amount,
       token: input.token ?? "MON",

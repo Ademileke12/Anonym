@@ -1,29 +1,29 @@
 /**
- * Privacy engine boundary.
+ * Privacy engine boundary — Phase "Next" (On-chain + ZK).
  *
- * Today: transparent Monad transfers + platform privacy (RLS, anonymous flags).
- * Demo mode: local "shielded" simulation for UI showcases (no chain change).
- * Future: replace adapters with real ZK circuits / nullifiers / shielded pools.
+ * - Vault deposits on Monad Testnet (deployed)
+ * - Commitment proofs (keccak-v1; SNARK-swappable)
+ * - Private balances (client reveal policy)
+ * - Mobile via PWA install
  */
 
-export type PrivacyMode = "transparent" | "shielded" | "platform";
+export type PrivacyMode = "transparent" | "shielded" | "platform" | "zk-v1";
 
 export type PrivacyTransferRequest = {
   from: `0x${string}`;
   to: `0x${string}`;
   amount: bigint;
   note?: string;
-  /** Prefer shielded path when engine supports it */
   preferShielded?: boolean;
 };
 
 export type PrivacyTransferResult = {
   txHash: `0x${string}`;
   relationshipId?: string;
-  /** Commitment / nullifier placeholders for ZK */
   commitment?: string;
   nullifier?: string;
-  mode: "transparent" | "shielded";
+  proof?: string;
+  mode: "transparent" | "shielded" | "zk-v1";
   proofMs?: number;
 };
 
@@ -34,13 +34,26 @@ export type ZkDemoStep =
   | "settling"
   | "complete";
 
-/** Feature flag - real chain still transparent until ZK backend ships. */
+/** Feature flags for Next phase */
 export const ZK_ENGINE = {
   enabled: true,
-  /** When false, chain path stays transparent; UI can still demo shielded flow. */
+  /** Client-side commitment proofs attached to vault deposits */
+  commitmentProofs: true,
+  /** Full on-chain SNARK verifier (not yet deployed) */
   onChainShielded: false,
-  version: "0.1.0-demo",
+  version: "0.2.0-next",
+  phase: "on-chain-zk" as const,
 } as const;
+
+export {
+  generateCommitmentProof,
+  verifyCommitmentProof,
+  serializeProof,
+  deriveNullifier,
+  commitAmount,
+  type CommitmentProof,
+  type ProofWitness,
+} from "./zk-proofs";
 
 function randomHex(bytes: number) {
   const arr = new Uint8Array(bytes);
@@ -54,14 +67,12 @@ function randomHex(bytes: number) {
 
 /**
  * Production transfer adapter. UI calls this instead of viem directly.
- * When onChainShielded is true, body swaps to ZK submit without UI changes.
  */
 export async function submitPrivateTransfer(
   req: PrivacyTransferRequest,
   sendTx: () => Promise<`0x${string}`>,
 ): Promise<PrivacyTransferResult> {
   if (ZK_ENGINE.onChainShielded && req.preferShielded) {
-    // Future: prove + submit to shielded pool contract
     const start = Date.now();
     const txHash = await sendTx();
     return {
@@ -83,8 +94,7 @@ export async function submitPrivateTransfer(
 }
 
 /**
- * Animated protocol + ZK-ready demo for landing (no real chain).
- * Maps to: resolve @user → commitment → vault deposit → claimable.
+ * Animated protocol + ZK demo for landing.
  */
 export async function runShieldedDemo(opts?: {
   onStep?: (step: ZkDemoStep, meta?: Record<string, string>) => void;
@@ -96,7 +106,9 @@ export async function runShieldedDemo(opts?: {
   onStep("encrypting", { note: "Resolving @username (no public wallet)" });
   await delay(700);
 
-  onStep("proving", { note: "Building commitment keccak256(recipient, salt)" });
+  onStep("proving", {
+    note: "Generating commitment proof (anonym-zk-v1)",
+  });
   await delay(1100);
 
   onStep("settling", { note: "Depositing to TransferVault on Monad" });
@@ -104,9 +116,10 @@ export async function runShieldedDemo(opts?: {
 
   const result: PrivacyTransferResult = {
     txHash: randomHex(32) as `0x${string}`,
-    mode: "shielded",
+    mode: "zk-v1",
     commitment: randomHex(32),
     nullifier: randomHex(32),
+    proof: randomHex(32),
     relationshipId: randomHex(16),
     proofMs: 1100,
   };
@@ -121,32 +134,36 @@ export async function runShieldedDemo(opts?: {
 
 export function describePrivacyMode() {
   return {
-    mode: (ZK_ENGINE.onChainShielded ? "shielded" : "platform") as PrivacyMode,
+    mode: (ZK_ENGINE.commitmentProofs
+      ? "zk-v1"
+      : ZK_ENGINE.onChainShielded
+        ? "shielded"
+        : "platform") as PrivacyMode,
     engineVersion: ZK_ENGINE.version,
+    phase: ZK_ENGINE.phase,
     summary:
-      "Payments are verified on Monad while sensitive financial relationships stay protected through Anonym's privacy architecture. Shielded ZK transfers are demo-ready in the product UI and will swap onto the same privacy module when circuits ship.",
+      "Vault deposits on Monad Testnet with client-side commitment proofs (anonym-zk-v1). SNARK verifiers and private balances ship on the same privacy module boundary.",
   };
 }
 
-/** Public marketing copy - vault protocol steps (ZK plugs in at commitment). */
 export const ZK_DEMO_COPY: Record<
   Exclude<ZkDemoStep, "idle">,
   { title: string; body: string }
 > = {
   encrypting: {
     title: "Resolve @username",
-    body: "Lookup stays internal. The product never shows Alice’s receiving wallet.",
+    body: "Lookup stays internal. The product never shows Alice's receiving wallet.",
   },
   proving: {
-    title: "Create commitment",
-    body: "commitment = keccak256(recipient, salt). Ready for ZK proofs without a UI rewrite.",
+    title: "Prove commitment",
+    body: "anonym-zk-v1 builds commitment + nullifier + amount commit. SNARKs plug in here.",
   },
   settling: {
     title: "Deposit to vault",
-    body: "MON lands in TransferVault - not Alice’s public address. No direct P2P.",
+    body: "MON lands in TransferVault on Monad Testnet - not Alice's public address.",
   },
   complete: {
     title: "Ready to claim",
-    body: "Alice sees a claimable transfer on her dashboard and withdraws when she chooses.",
+    body: "Alice claims with nullifier protection. Private balances stay off the public graph.",
   },
 };
