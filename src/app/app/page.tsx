@@ -136,35 +136,37 @@ export default function DashboardPage() {
     .reduce((a, t) => a + Number(t.amount), 0);
   const claimableTotal = claimable.reduce((a, d) => a + Number(d.amount), 0);
 
-  const feed = activity
-    .map((d) => {
-      const out = d.sender_wallet === wallet?.toLowerCase();
-      const isDonation = d.kind === "donation";
-      return {
-        id: d.id,
-        kind: d.kind,
-        title: out
-          ? isDonation
-            ? `Contributed ${formatMon(d.amount)} MON`
-            : `Protected send ${formatMon(d.amount)} MON`
-          : isDonation
-            ? `Campaign received ${formatMon(d.amount)} MON`
-            : `Protected receive ${formatMon(d.amount)} MON`,
-        sub: d.anonymous
-          ? out
-            ? "Anonymous · vault deposit"
-            : "Anonymous · claim from vault"
-          : out
-            ? "Protected deposit"
-            : d.status === "claimable"
-              ? "Ready to claim"
-              : d.status,
-        at: d.created_at,
-        out,
-        status: d.status,
-      };
-    })
-    .slice(0, 10);
+  const DASHBOARD_ACTIVITY_LIMIT = 8;
+
+  const feedAll = activity.map((d) => {
+    const out = d.sender_wallet === wallet?.toLowerCase();
+    const isDonation = d.kind === "donation";
+    return {
+      id: d.id,
+      kind: d.kind,
+      title: out
+        ? isDonation
+          ? `Contributed ${formatMon(d.amount)} MON`
+          : `Protected send ${formatMon(d.amount)} MON`
+        : isDonation
+          ? `Campaign received ${formatMon(d.amount)} MON`
+          : `Protected receive ${formatMon(d.amount)} MON`,
+      sub: d.anonymous
+        ? out
+          ? "Anonymous · vault deposit"
+          : "Anonymous · claim from vault"
+        : out
+          ? "Protected deposit"
+          : d.status === "claimable"
+            ? "Ready to claim"
+            : d.status,
+      at: d.created_at,
+      out,
+      status: d.status,
+    };
+  });
+  const feed = feedAll.slice(0, DASHBOARD_ACTIVITY_LIMIT);
+  const hasMoreActivity = feedAll.length > DASHBOARD_ACTIVITY_LIMIT;
 
   async function claimOne(deposit: ProtectedDeposit) {
     if (!walletClient || !publicClient || !wallet) {
@@ -582,9 +584,12 @@ export default function DashboardPage() {
                   </CardDescription>
                 </div>
               </div>
-              <Badge variant="outline" className="text-[10px]">
-                Live
-              </Badge>
+              <Button asChild variant="secondary" size="sm" className="h-8 gap-1 px-2.5 text-xs">
+                <Link href="/app/activity">
+                  View all
+                  <ChevronRight className="size-3.5" />
+                </Link>
+              </Button>
             </div>
             <div className="px-4 py-1 sm:px-5">
               {feed.length === 0 ? (
@@ -600,33 +605,45 @@ export default function DashboardPage() {
                   }
                 />
               ) : (
-                <ul>
-                  {feed.map((a, i) => (
-                    <li
-                      key={a.id}
-                      className={cn(
-                        "flex items-center justify-between gap-3 py-3.5",
-                        i < feed.length - 1 && "border-b border-line/80",
-                      )}
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        <IconTile
-                          icon={a.out ? ArrowUpRight : ArrowDownLeft}
-                          size="sm"
-                        />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">
-                            {a.title}
-                          </p>
-                          <p className="truncate text-xs text-muted">{a.sub}</p>
+                <>
+                  <ul>
+                    {feed.map((a, i) => (
+                      <li
+                        key={a.id}
+                        className={cn(
+                          "flex items-center justify-between gap-3 py-3.5",
+                          i < feed.length - 1 && "border-b border-line/80",
+                        )}
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <IconTile
+                            icon={a.out ? ArrowUpRight : ArrowDownLeft}
+                            size="sm"
+                          />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">
+                              {a.title}
+                            </p>
+                            <p className="truncate text-xs text-muted">{a.sub}</p>
+                          </div>
                         </div>
-                      </div>
-                      <span className="shrink-0 text-xs tabular-nums text-faint">
-                        {timeAgo(a.at)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                        <span className="shrink-0 text-xs tabular-nums text-faint">
+                          {timeAgo(a.at)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {hasMoreActivity ? (
+                    <div className="border-t border-line py-3">
+                      <Button asChild variant="secondary" size="sm" className="w-full">
+                        <Link href="/app/activity">
+                          View all activity
+                          <ChevronRight className="size-3.5" />
+                        </Link>
+                      </Button>
+                    </div>
+                  ) : null}
+                </>
               )}
             </div>
           </Card>

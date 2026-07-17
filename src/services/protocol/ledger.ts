@@ -269,15 +269,17 @@ export async function listPendingLocksForWallet(
 
 export async function listProtectedActivity(
   wallet: string,
+  opts?: { limit?: number },
 ): Promise<ProtectedDeposit[]> {
   const supabase = createClient();
   const w = wallet.toLowerCase();
+  const limit = Math.min(Math.max(opts?.limit ?? 40, 1), 200);
   const { data, error } = await supabase
     .from("protected_deposits")
     .select("*")
     .or(`sender_wallet.eq.${w},recipient_wallet.eq.${w}`)
     .order("created_at", { ascending: false })
-    .limit(40);
+    .limit(limit);
   if (error) {
     if (isMissingProtocolTable(error)) return [];
     throw error;
