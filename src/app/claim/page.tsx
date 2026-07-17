@@ -248,11 +248,11 @@ function ClaimInner() {
               </Button>
             )}
 
-            <p className="text-center text-[11px] text-faint">
-              Recipient: {preview.deposit.recipient_wallet.slice(0, 8)}…
-              {preview.deposit.recipient_wallet.slice(-6)}
-              {address ? ` · Connected ${address.slice(0, 6)}…` : ""}
-            </p>
+            {address ? (
+              <p className="text-center text-[11px] text-faint">
+                Connected {address.slice(0, 6)}…{address.slice(-4)}
+              </p>
+            ) : null}
           </Card>
         ) : null}
       </main>
