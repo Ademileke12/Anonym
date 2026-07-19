@@ -7,6 +7,7 @@ import {
   Send,
   Download,
   HeartHandshake,
+  Key,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ const tabs: {
   { href: "/app/transfer", label: "Send", icon: Send },
   { href: "/app/campaigns", label: "Raise", icon: HeartHandshake },
   { href: "/app/receive", label: "Receive", icon: Download },
+  { href: "/app/merchant", label: "API", icon: Key },
   { href: "/app/settings", label: "More", icon: Settings },
 ];
 
