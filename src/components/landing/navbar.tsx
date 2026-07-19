@@ -18,6 +18,7 @@ const links = [
   { href: "#backdoor", label: "Backdoor" },
   { href: "#features", label: "Features" },
   { href: "#faq", label: "FAQ" },
+  { href: "/docs", label: "API Docs" },
 ];
 
 export function LandingNavbar() {

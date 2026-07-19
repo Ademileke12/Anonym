@@ -428,6 +428,230 @@ export type Database = {
           created_at?: Timestamp;
         }
       >;
+      merchants: TableDef<
+        {
+          id: string;
+          user_id: string | null;
+          name: string;
+          email: string;
+          api_key_hash: string;
+          api_key_prefix: string;
+          webhook_url: string | null;
+          webhook_secret: string | null;
+          status: string;
+          metadata: Record<string, unknown>;
+          created_at: Timestamp;
+          updated_at: Timestamp;
+        },
+        {
+          id?: string;
+          user_id?: string | null;
+          name: string;
+          email: string;
+          api_key_hash: string;
+          api_key_prefix: string;
+          webhook_url?: string | null;
+          webhook_secret?: string | null;
+          status?: string;
+          metadata?: Record<string, unknown>;
+          created_at?: Timestamp;
+          updated_at?: Timestamp;
+        }
+      >;
+      payment_intents: TableDef<
+        {
+          id: string;
+          merchant_id: string;
+          amount: number;
+          token: string;
+          currency: string;
+          recipient_address: string | null;
+          recipient_merchant_id: string | null;
+          payer_managed_wallet: string | null;
+          payer_label: string | null;
+          vault_address: string | null;
+          deposit_id: number | null;
+          commitment_hash: string | null;
+          salt: string | null;
+          tx_hash: string | null;
+          claim_tx_hash: string | null;
+          status: string;
+          description: string | null;
+          metadata: Record<string, unknown>;
+          idempotency_key: string | null;
+          expires_at: Timestamp;
+          paid_at: Timestamp | null;
+          settled_at: Timestamp | null;
+          created_at: Timestamp;
+          updated_at: Timestamp;
+        },
+        {
+          id?: string;
+          merchant_id: string;
+          amount: number;
+          token?: string;
+          currency?: string;
+          recipient_address?: string | null;
+          recipient_merchant_id?: string | null;
+          payer_managed_wallet?: string | null;
+          payer_label?: string | null;
+          vault_address?: string | null;
+          deposit_id?: number | null;
+          commitment_hash?: string | null;
+          salt?: string | null;
+          tx_hash?: string | null;
+          claim_tx_hash?: string | null;
+          status?: string;
+          description?: string | null;
+          metadata?: Record<string, unknown>;
+          idempotency_key?: string | null;
+          expires_at?: Timestamp;
+          paid_at?: Timestamp | null;
+          settled_at?: Timestamp | null;
+          created_at?: Timestamp;
+          updated_at?: Timestamp;
+        }
+      >;
+      managed_wallets: TableDef<
+        {
+          id: string;
+          merchant_id: string;
+          address: string;
+          derivation_index: number;
+          label: string | null;
+          user_identifier: string | null;
+          status: string;
+          created_at: Timestamp;
+        },
+        {
+          id?: string;
+          merchant_id: string;
+          address: string;
+          derivation_index: number;
+          label?: string | null;
+          user_identifier?: string | null;
+          status?: string;
+          created_at?: Timestamp;
+        }
+      >;
+      webhook_endpoints: TableDef<
+        {
+          id: string;
+          merchant_id: string;
+          url: string;
+          secret: string;
+          events: string[];
+          status: string;
+          created_at: Timestamp;
+        },
+        {
+          id?: string;
+          merchant_id: string;
+          url: string;
+          secret: string;
+          events?: string[];
+          status?: string;
+          created_at?: Timestamp;
+        }
+      >;
+      webhook_deliveries: TableDef<
+        {
+          id: string;
+          endpoint_id: string;
+          event_type: string;
+          payload: Record<string, unknown>;
+          status: string;
+          attempts: number;
+          last_attempt_at: Timestamp | null;
+          next_retry_at: Timestamp | null;
+          response_status: number | null;
+          response_body: string | null;
+          created_at: Timestamp;
+        },
+        {
+          id?: string;
+          endpoint_id: string;
+          event_type: string;
+          payload: Record<string, unknown>;
+          status?: string;
+          attempts?: number;
+          last_attempt_at?: Timestamp | null;
+          next_retry_at?: Timestamp | null;
+          response_status?: number | null;
+          response_body?: string | null;
+          created_at?: Timestamp;
+        }
+      >;
+      merchant_api_keys: TableDef<
+        {
+          id: string;
+          merchant_id: string;
+          key_hash: string;
+          key_prefix: string;
+          name: string;
+          last_used_at: Timestamp | null;
+          expires_at: Timestamp | null;
+          revoked_at: Timestamp | null;
+          created_at: Timestamp;
+        },
+        {
+          id?: string;
+          merchant_id: string;
+          key_hash: string;
+          key_prefix: string;
+          name?: string;
+          last_used_at?: Timestamp | null;
+          expires_at?: Timestamp | null;
+          revoked_at?: Timestamp | null;
+          created_at?: Timestamp;
+        }
+      >;
+      api_rate_limits: TableDef<
+        {
+          id: string;
+          merchant_id: string;
+          endpoint: string;
+          window_start: Timestamp;
+          request_count: number;
+        },
+        {
+          id?: string;
+          merchant_id: string;
+          endpoint: string;
+          window_start: Timestamp;
+          request_count?: number;
+        }
+      >;
+      api_request_logs: TableDef<
+        {
+          id: string;
+          merchant_id: string;
+          method: string;
+          endpoint: string;
+          status_code: number;
+          response_time_ms: number | null;
+          ip_address: string | null;
+          user_agent: string | null;
+          request_size_bytes: number | null;
+          response_size_bytes: number | null;
+          error_code: string | null;
+          created_at: Timestamp;
+        },
+        {
+          id?: string;
+          merchant_id: string;
+          method: string;
+          endpoint: string;
+          status_code: number;
+          response_time_ms?: number | null;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          request_size_bytes?: number | null;
+          response_size_bytes?: number | null;
+          error_code?: string | null;
+          created_at?: Timestamp;
+        }
+      >;
     };
     Views: Record<string, never>;
     Functions: {

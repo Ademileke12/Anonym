@@ -12,6 +12,7 @@ import {
   Settings,
   UserRound,
   Plus,
+  Key,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
@@ -26,6 +27,7 @@ const nav = [
   { href: "/app/campaigns/new", label: "Create campaign", icon: Plus },
   { href: "/app/backdoor", label: "Backdoor", icon: Eye },
   { href: "/app/notifications", label: "Notifications", icon: Bell, badge: true },
+  { href: "/app/merchant", label: "API Dashboard", icon: Key },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 

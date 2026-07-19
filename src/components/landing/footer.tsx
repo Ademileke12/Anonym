@@ -16,6 +16,9 @@ export function LandingFooter() {
           <Link href="/app" className="hover:text-ink">
             App
           </Link>
+          <Link href="/docs" className="hover:text-ink">
+            API Docs
+          </Link>
           <a href="#faq" className="hover:text-ink">
             FAQ
           </a>
