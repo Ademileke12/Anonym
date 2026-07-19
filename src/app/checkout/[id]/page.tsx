@@ -378,7 +378,7 @@ function CheckoutInner() {
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium">Your wallet</span>
             {isConnected && isCorrectNetwork ? (
-              <Badge variant="green">Monad Testnet</Badge>
+              <Badge className="bg-chip-gray-bg text-ink">Monad Testnet</Badge>
             ) : null}
           </div>
           <ConnectButton label="Connect wallet to pay" className="w-full" />
@@ -386,13 +386,13 @@ function CheckoutInner() {
           {isConnected && checkedPlatform ? (
             platformUser ? (
               <div className="mt-3 flex items-center gap-2 rounded-lg bg-subtle px-3 py-2 text-sm text-ink">
-                <Sparkles className="size-4 text-chip-purple-fg" />
+                <Sparkles className="size-4 text-ink" />
                 <span>
                   Welcome back,{" "}
                   <span className="font-semibold">
                     @{platformUser.username}
                   </span>{" "}
-                  — you&apos;re on Anonym.
+                  you&apos;re on Anonym.
                 </span>
               </div>
             ) : (
