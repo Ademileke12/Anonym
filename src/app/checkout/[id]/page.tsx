@@ -331,24 +331,17 @@ function CheckoutInner() {
             {intent.tx_hash}
           </p>
         ) : null}
-        <div className="mt-5 flex gap-2">
+        <div className="mt-5">
           {returnUrl ? (
             <Button
-              className="flex-1"
+              className="w-full"
               onClick={() => {
                 window.location.href = returnUrl;
               }}
             >
-              Return to {intent.merchant_name}
+              Return to merchant
             </Button>
           ) : null}
-          <Button
-            className={returnUrl ? "" : "w-full"}
-            variant={returnUrl ? "secondary" : "primary"}
-            onClick={() => router.push("/playground")}
-          >
-            Back to store
-          </Button>
         </div>
       </Card>,
     );
