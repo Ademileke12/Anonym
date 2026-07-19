@@ -173,7 +173,7 @@ export async function getPublicCheckoutIntent(
   const { data, error } = await admin
     .from("payment_intents")
     .select(
-      "id, amount, token, currency, description, recipient_address, status, tx_hash, expires_at, metadata, merchants ( name )",
+      "id, amount, token, currency, description, recipient_address, status, tx_hash, expires_at, metadata, merchant_id",
     )
     .eq("id", intentId)
     .single();
@@ -182,9 +182,15 @@ export async function getPublicCheckoutIntent(
     return { ok: false, error: "Payment not found", code: "NOT_FOUND" };
   }
 
-  const merchant = Array.isArray(data.merchants)
-    ? data.merchants[0]
-    : data.merchants;
+  let merchantName = "Merchant";
+  if (data.merchant_id) {
+    const { data: merchant } = await admin
+      .from("merchants")
+      .select("name")
+      .eq("id", data.merchant_id)
+      .single();
+    if (merchant?.name) merchantName = merchant.name;
+  }
 
   return {
     ok: true,
@@ -198,8 +204,7 @@ export async function getPublicCheckoutIntent(
       status: data.status,
       tx_hash: data.tx_hash,
       expires_at: data.expires_at,
-      merchant_name:
-        (merchant as { name?: string } | null)?.name || "Merchant",
+      merchant_name: merchantName,
       metadata: (data.metadata as Record<string, unknown>) || {},
     },
   };

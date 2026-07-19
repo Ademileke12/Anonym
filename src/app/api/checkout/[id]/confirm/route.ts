@@ -72,6 +72,9 @@ export async function POST(
 
     if (result.ok && result.data) {
       await dispatchWebhook("payment.paid", result.data);
+      // Re-fetch with merchant_name so the checkout page renders correctly
+      const updated = await getPublicCheckoutIntent(id);
+      return NextResponse.json(updated, { status: 200 });
     }
 
     return NextResponse.json(result, { status: result.ok ? 200 : 400 });
