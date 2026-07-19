@@ -26,7 +26,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatMon } from "@/lib/format";
-import { CheckCircle2, Loader2, Shield, Sparkles } from "lucide-react";
+import {
+  CheckCircle2,
+  Loader2,
+  Shield,
+  Sparkles,
+  XCircle,
+  ArrowLeft,
+} from "lucide-react";
 
 type CheckoutIntent = {
   id: string;
@@ -80,6 +87,7 @@ function CheckoutInner() {
   const [platformUser, setPlatformUser] = useState<PlatformUser | null>(null);
   const [checkedPlatform, setCheckedPlatform] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
@@ -110,7 +118,6 @@ function CheckoutInner() {
     };
   }, [intentId, refreshIntent]);
 
-  // "Is this shopper already on Anonym?" — personalizes the checkout.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -152,8 +159,6 @@ function CheckoutInner() {
     try {
       await ensureMonadTestnet();
 
-      // Real on-chain deposit: debits MON from the payer into the vault,
-      // committed to the merchant payout address. This is the privacy step.
       const result = await protocolTransfer({
         clients: {
           walletClient,
@@ -168,8 +173,6 @@ function CheckoutInner() {
         metadata: { source: "anonym-checkout", intent_id: intent.id },
       });
 
-      // Confirm with the REAL tx hash + the real vault salt/commitment/deposit id
-      // so the merchant can reconstruct the claim from the intent alone.
       const depositId = result.deposit.on_chain_deposit_id
         ? Number(result.deposit.on_chain_deposit_id)
         : undefined;
@@ -202,10 +205,28 @@ function CheckoutInner() {
     }
   }
 
+  async function cancelPayment() {
+    if (!intentId) return;
+    setCancelling(true);
+    try {
+      const res = await fetch(`/api/checkout/${intentId}/cancel`, {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (json.ok) {
+        setIntent((prev) => (prev ? { ...prev, status: "cancelled" } : prev));
+      }
+    } catch {
+      // best-effort — the intent may still expire on its own
+    } finally {
+      setCancelling(false);
+    }
+  }
+
   // ── Chrome ────────────────────────────────────────────────────────────────
   const shell = (children: React.ReactNode) => (
     <div className="flex min-h-screen flex-col bg-subtle">
-      <header className="border-b border-line bg-base">
+      <header className="border-b border-line bg-base/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-lg items-center justify-between px-5 py-3.5">
           <AnonymLogo size={22} />
           <span className="inline-flex items-center gap-1.5 text-xs text-muted">
@@ -217,7 +238,7 @@ function CheckoutInner() {
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-5 py-10">
         {children}
       </main>
-      <footer className="pb-8 text-center text-xs text-muted">
+      <footer className="pb-8 text-center text-[11px] text-faint">
         Payments settled privately on Monad · Powered by Anonym
       </footer>
     </div>
@@ -226,12 +247,16 @@ function CheckoutInner() {
   if (loadError) {
     return shell(
       <Card elevated>
-        <h1 className="text-lg font-semibold">Checkout unavailable</h1>
-        <p className="mt-2 text-sm text-muted">{loadError}</p>
+        <div className="flex flex-col items-center text-center">
+          <XCircle className="size-10 text-chip-red-fg" />
+          <h1 className="mt-3 text-lg font-semibold">Checkout unavailable</h1>
+          <p className="mt-1.5 text-sm text-muted">{loadError}</p>
+        </div>
         <div className="mt-5 flex gap-2">
           {returnUrl ? (
             <Button
               variant="secondary"
+              className="flex-1"
               onClick={() => {
                 window.location.href = returnUrl;
               }}
@@ -239,7 +264,10 @@ function CheckoutInner() {
               Return to merchant
             </Button>
           ) : null}
-          <Button onClick={() => router.push("/playground")}>
+          <Button
+            className={returnUrl ? "" : "w-full"}
+            onClick={() => router.push("/playground")}
+          >
             Back to store
           </Button>
         </div>
@@ -253,6 +281,39 @@ function CheckoutInner() {
         <Loader2 className="size-4 animate-spin" />
         Loading payment…
       </div>,
+    );
+  }
+
+  if (intent.status === "cancelled") {
+    return shell(
+      <Card elevated>
+        <div className="flex flex-col items-center text-center">
+          <XCircle className="size-10 text-chip-yellow-fg" />
+          <h1 className="mt-3 text-lg font-semibold">Payment cancelled</h1>
+          <p className="mt-1.5 text-sm text-muted">
+            This payment has been cancelled and is no longer active.
+          </p>
+        </div>
+        <div className="mt-5 flex gap-2">
+          {returnUrl ? (
+            <Button
+              variant="secondary"
+              className="flex-1"
+              onClick={() => {
+                window.location.href = returnUrl;
+              }}
+            >
+              Return to merchant
+            </Button>
+          ) : null}
+          <Button
+            className={returnUrl ? "" : "w-full"}
+            onClick={() => router.push("/playground")}
+          >
+            Back to store
+          </Button>
+        </div>
+      </Card>,
     );
   }
 
@@ -300,7 +361,7 @@ function CheckoutInner() {
         <span className="text-xs font-medium uppercase tracking-wide text-muted">
           {intent.merchant_name} · Paying
         </span>
-        <div className="mt-1 flex items-baseline gap-1.5">
+        <div className="mt-1.5 flex items-baseline gap-1.5">
           <span className="text-3xl font-bold">{formatMon(intent.amount)}</span>
           <span className="text-base font-medium text-muted">
             {intent.token}
@@ -324,8 +385,8 @@ function CheckoutInner() {
 
           {isConnected && checkedPlatform ? (
             platformUser ? (
-              <div className="mt-3 flex items-center gap-2 rounded-lg bg-chip-purple-bg px-3 py-2 text-sm text-chip-purple-fg">
-                <Sparkles className="size-4" />
+              <div className="mt-3 flex items-center gap-2 rounded-lg bg-subtle px-3 py-2 text-sm text-ink">
+                <Sparkles className="size-4 text-chip-purple-fg" />
                 <span>
                   Welcome back,{" "}
                   <span className="font-semibold">
@@ -376,6 +437,21 @@ function CheckoutInner() {
             `Pay ${formatMon(intent.amount)} ${intent.token} anonymously`
           )}
         </Button>
+
+        {/* Cancel */}
+        <button
+          type="button"
+          disabled={cancelling || paying}
+          onClick={() => void cancelPayment()}
+          className="flex w-full items-center justify-center gap-1.5 text-xs text-muted transition hover:text-ink disabled:opacity-50"
+        >
+          {cancelling ? (
+            <Loader2 className="size-3 animate-spin" />
+          ) : (
+            <ArrowLeft className="size-3" />
+          )}
+          {cancelling ? "Cancelling…" : "Cancel and go back"}
+        </button>
 
         {payError ? (
           <p className="text-sm text-chip-red-fg">{payError}</p>

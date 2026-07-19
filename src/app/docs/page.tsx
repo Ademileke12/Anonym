@@ -424,6 +424,11 @@ const { ok, data } = await res.json();
                         description="Confirm a checkout payment. Body: { tx_hash, deposit_id?, salt?, commitment_hash? }. Marks intent as paid and fires payment.paid webhook."
                       />
                       <EndpointCard
+                        method="POST"
+                        path="/checkout/:id/cancel"
+                        description="Cancel a pending checkout. Only works on `created` intents — no action after payment. Returns current intent status."
+                      />
+                      <EndpointCard
                         method="GET"
                         path="/checkout/lookup?wallet=:address"
                         description="Look up an Anonym user profile by wallet address. Returns username, display_name, and avatar_url."
@@ -563,52 +568,266 @@ const { ok, data } = await res.json();
                 </p>
               </section>
 
-              {/* Hosted Checkout */}
+              {/* Hosted Checkout Integration */}
               <section>
                 <h2 className="mb-4 text-2xl font-bold tracking-tight">
-                  Hosted Checkout Page
+                  Hosted Checkout Integration
                 </h2>
                 <p className="mb-4 text-muted leading-relaxed">
-                  Use the hosted checkout page to accept payments without
-                  building a custom payment UI. Share the checkout link with
-                  your user — they connect their wallet, pay, and the intent
-                  is automatically confirmed.
+                  The hosted checkout is a Stripe-style payment page you
+                  redirect users to. It handles wallet connection, on-chain
+                  payment, vault routing, and confirmation — no custom UI
+                  needed on your end. Every API key gets this for free.
+                </p>
+
+                {/* How it works */}
+                <h3 className="mb-3 text-lg font-semibold text-ink">
+                  How It Works
+                </h3>
+                <div className="mb-6 space-y-3">
+                  {[
+                    ["1", "Create Intent", "Your backend calls POST /intents to create a payment. Returns an intent ID."],
+                    ["2", "Redirect", "Send the user to {APP_URL}/checkout/{intent_id}?return_url={your_success_url}."],
+                    ["3", "User Pays", "The checkout page loads the intent, the user connects their wallet, and pays on-chain through Anonym vaults."],
+                    ["4", "Automatic Confirm", "The page calls POST /checkout/:id/confirm to mark the intent paid — no action needed from you."],
+                    ["5", "Return", "After payment, the user is redirected to your return_url. You receive a webhook when the payment is confirmed."],
+                  ].map(([num, title, desc]) => (
+                    <div key={num} className="flex items-start gap-3">
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-inverse text-sm font-bold text-on-inverse">
+                        {num}
+                      </span>
+                      <div>
+                        <h4 className="font-semibold text-ink">{title}</h4>
+                        <p className="text-sm text-muted">{desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Flow diagram */}
+                <div className="mb-6 overflow-hidden rounded-[var(--radius-panel)] border border-line bg-subtle p-5">
+                  <h4 className="mb-3 text-sm font-semibold text-ink">
+                    Integration Flow
+                  </h4>
+                  <pre className="overflow-x-auto text-[11px] leading-relaxed text-muted">
+                    <code>{`Your App                    Anonym Gateway              Shopper
+  │                              │                          │
+  │  POST /intents ─────────────►│                          │
+  │  ◄──── { id } ──────────────│                          │
+  │                              │                          │
+  │  redirect ──────────────────►│  /checkout/{id}          │
+  │                              │  ◄───────────────────────│  (connects wallet)
+  │                              │  GET /checkout/{id} ────►│
+  │                              │  ◄──── intent data ──────│
+  │                              │                          │
+  │                              │  protocolTransfer() ────►│  (on-chain payment)
+  │                              │  POST /checkout/{id}/confirm
+  │                              │                          │
+  │  webhook: payment.paid ──────│                          │
+  │                              │                          │
+  │  ◄────────────────────────── │  redirect to return_url  │`}</code>
+                  </pre>
+                </div>
+
+                {/* Step 1: Create intent */}
+                <h3 className="mb-3 text-lg font-semibold text-ink">
+                  Step 1: Create a Payment Intent
+                </h3>
+                <p className="mb-3 text-sm text-muted">
+                  Call this from your backend (never expose your API key in
+                  client code). The intent ID is what you redirect the user
+                  to.
                 </p>
                 <CodeBlock
-                  title="Checkout URL"
-                  code={`${BASE.replace("/api/gateway", "")}/checkout/{intent_id}`}
+                  title="POST /api/gateway/intents"
+                  code={`curl -X POST ${BASE}/intents \\
+  -H "Authorization: Bearer $ANONYM_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "amount": 25,
+    "token": "MON",
+    "description": "Pro plan — monthly",
+    "recipient_address": "0xYourReceivingWallet",
+    "metadata": { "order_id": "ord_abc123", "plan": "pro" },
+    "expires_in_seconds": 3600
+  }'`}
+                />
+                <div className="mt-3">
+                  <CodeBlock
+                    title="Response"
+                    code={`{
+  "ok": true,
+  "data": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "status": "created",
+    "amount": 25,
+    "token": "MON",
+    "expires_at": "2026-07-18T15:30:00Z"
+  }
+}`}
+                  />
+                </div>
+
+                {/* Step 2: Build checkout URL */}
+                <h3 className="mb-3 mt-6 text-lg font-semibold text-ink">
+                  Step 2: Build the Checkout URL
+                </h3>
+                <p className="mb-3 text-sm text-muted">
+                  Append the intent ID to the checkout path. Optionally pass
+                  <code>?return_url=</code> to send the user back to your app
+                  after payment.
+                </p>
+                <CodeBlock
+                  title="Checkout URL pattern"
+                  code={`${BASE.replace("/api/gateway", "")}/checkout/{intent_id}?return_url=https://your-app.com/thank-you`}
+                />
+                <div className="mt-3">
+                  <CodeBlock
+                    title="Generate in Node.js"
+                    code={`const APP_URL = "https://anonympay.vercel.app";
+
+const intent = await fetch("${BASE}/intents", {
+  method: "POST",
+  headers: {
+    Authorization: \`Bearer \${process.env.ANONYM_API_KEY}\`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    amount: 25,
+    token: "MON",
+    description: "Pro plan",
+    recipient_address: "0xYourReceivingWallet",
+  }),
+}).then((r) => r.json());
+
+const checkoutUrl = \`\${APP_URL}/checkout/\${intent.data.id}?return_url=https://your-app.com/success\`;
+
+// Redirect the user, embed in an iframe, or show as a link
+res.redirect(checkoutUrl);`}
+                  />
+                </div>
+
+                {/* Step 3: Handle return */}
+                <h3 className="mb-3 mt-6 text-lg font-semibold text-ink">
+                  Step 3: Receive Confirmation
+                </h3>
+                <p className="mb-3 text-sm text-muted">
+                  When the user completes payment, they land on your
+                  <code>return_url</code>. To know for sure the payment
+                  succeeded (and to verify the amount), listen for the
+                  webhook.
+                </p>
+                <CodeBlock
+                  title="Webhook payload (payment.paid)"
+                  code={`{
+  "event": "payment.paid",
+  "data": {
+    "id": "f47ac10b-...",
+    "status": "paid",
+    "amount": 25,
+    "token": "MON",
+    "tx_hash": "0x9c2f...",
+    "paid_at": "2026-07-18T15:31:00Z",
+    "metadata": { "order_id": "ord_abc123", "plan": "pro" }
+  }
+}`}
                 />
                 <p className="mt-3 text-sm text-muted">
-                  The checkout page handles the full payment flow:
+                  The <code>metadata</code> field echoes back whatever you
+                  passed when creating the intent — use it to match payments
+                  to orders in your database.
                 </p>
-                <ol className="ml-5 mt-2 list-decimal space-y-2 text-sm text-muted">
-                  <li>Loads intent details from <code>GET /checkout/:id</code></li>
-                  <li>User connects their wallet via wagmi</li>
-                  <li>Detects if wallet belongs to an Anonym user (for profile display)</li>
-                  <li>Checks MON balance and shows insufficient balance state</li>
-                  <li>Executes on-chain payment via <code>protocolTransfer</code> (vault deposit)</li>
-                  <li>Confirms intent via <code>POST /checkout/:id/confirm</code></li>
-                  <li>Shows success state with transaction hash</li>
-                </ol>
+
+                {/* Integration examples */}
+                <h3 className="mb-3 mt-6 text-lg font-semibold text-ink">
+                  Integration Examples
+                </h3>
+                <div className="space-y-4">
+                  {/* Next.js */}
+                  <div className="rounded-[var(--radius-panel)] border border-line bg-card p-4">
+                    <h4 className="mb-2 text-sm font-semibold text-ink">
+                      Next.js Route Handler
+                    </h4>
+                    <CodeBlock
+                      code={`// app/api/checkout/route.ts
+import { NextResponse } from "next/server";
+
+const APP_URL = "https://anonympay.vercel.app";
+
+export async function POST(req: Request) {
+  const { amount, description } = await req.json();
+
+  const res = await fetch("${BASE}/intents", {
+    method: "POST",
+    headers: {
+      Authorization: \`Bearer \${process.env.ANONYM_API_KEY}\`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ amount, token: "MON", description }),
+  });
+
+  const { ok, data, error } = await res.json();
+  if (!ok) {
+    return NextResponse.json({ error }, { status: 400 });
+  }
+
+  const checkoutUrl = \`\${APP_URL}/checkout/\${data.id}?return_url=\${encodeURIComponent("https://your-app.com/success")}\`;
+
+  return NextResponse.json({ checkoutUrl });
+}`}
+                    />
+                  </div>
+
+                  {/* Python / Flask */}
+                  <div className="rounded-[var(--radius-panel)] border border-line bg-card p-4">
+                    <h4 className="mb-2 text-sm font-semibold text-ink">
+                      Python (Flask)
+                    </h4>
+                    <CodeBlock
+                      code={`import os, requests
+from flask import Flask, request, redirect
+
+ANONYM_KEY = os.environ["ANONYM_API_KEY"]
+ANONYM_BASE = "${BASE}"
+APP_URL = "https://anonympay.vercel.app"
+
+@app.route("/checkout", methods=["POST"])
+def checkout():
+    amount = request.json["amount"]
+    resp = requests.post(
+        f"{ANONYM_BASE}/intents",
+        headers={"Authorization": f"Bearer {ANONYM_KEY}"},
+        json={"amount": amount, "token": "MON"},
+    ).json()
+
+    intent_id = resp["data"]["id"]
+    checkout_url = f"{APP_URL}/checkout/{intent_id}?return_url=https://your-app.com/success"
+    return redirect(checkout_url)`}
+                    />
+                  </div>
+                </div>
+
+                {/* Cancel */}
                 <div className="mt-4 rounded-[var(--radius-panel)] border border-line bg-card p-4">
                   <p className="text-sm text-muted">
-                    <span className="font-semibold text-ink">Return URL:</span>{" "}
-                    Append <code>?return_url=https://your-app.com/success</code> to
-                    redirect the user back after successful payment.
+                    <span className="font-semibold text-ink">Cancelling:</span>{" "}
+                    The checkout page includes a cancel button. Users can bail
+                    out before paying. The intent is marked{" "}
+                    <code>cancelled</code> and is no longer active. You can also
+                    cancel via <code>POST /intents/:id/cancel</code> from your
+                    backend.
                   </p>
                 </div>
-                <div className="mt-4">
-                  <CodeBlock
-                    title="Generate a checkout link (Node.js)"
-                    code={`// After creating an intent:
-const intent = await createIntent({ amount: 10, token: "MON" });
 
-// Build the checkout URL
-const checkoutUrl = \`${BASE.replace("/api/gateway", "")}/checkout/\${intent.data.id}?return_url=https://your-app.com/success\`;
-
-// Share this URL with your user
-console.log("Pay here:", checkoutUrl);`}
-                  />
+                {/* Expiry */}
+                <div className="mt-3 rounded-[var(--radius-panel)] border border-line bg-card p-4">
+                  <p className="text-sm text-muted">
+                    <span className="font-semibold text-ink">Expiry:</span>{" "}
+                    Intents expire after <code>expires_in_seconds</code>{" "}
+                    (default 1 hour). The checkout page shows a countdown. Once
+                    expired, the user can no longer pay and must start a new
+                    checkout.
+                  </p>
                 </div>
               </section>
 
